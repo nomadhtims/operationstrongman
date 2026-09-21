@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0d0f12" />
+  <meta name="description" content="Competition-focused strongman training tracker for log and deadlift." />
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" href="./icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+  <link rel="stylesheet" href="./style.css" />
+  <title>Strongman Peak</title>
+</head>
+<body>
+  <div id="app" class="app-shell">
+    <header class="topbar">
+      <button class="brand" data-nav="home" aria-label="Home">
+        <span class="brand-mark">SP</span>
+        <span>
+          <strong>Strongman Peak</strong>
+          <small>31 Oct · Log + Deadlift</small>
+        </span>
+      </button>
+      <button id="installBtn" class="ghost-btn hidden">Install</button>
+    </header>
+
+    <main id="main" tabindex="-1"></main>
+
+    <nav class="bottom-nav" aria-label="Primary navigation">
+      <button data-nav="home" class="nav-btn active"><span>⌂</span><small>Home</small></button>
+      <button data-nav="program" class="nav-btn"><span>▦</span><small>Plan</small></button>
+      <button data-nav="history" class="nav-btn"><span>↻</span><small>History</small></button>
+      <button data-nav="settings" class="nav-btn"><span>⚙</span><small>Data</small></button>
+    </nav>
+  </div>
+
+  <template id="setRowTemplate">
+    <div class="set-row">
+      <div class="set-label"></div>
+      <label>kg<input class="actual-weight" type="number" inputmode="decimal" step="0.5" min="0" /></label>
+      <label>reps<input class="actual-reps" type="number" inputmode="numeric" step="1" min="0" /></label>
+      <label>RPE<input class="actual-rpe" type="number" inputmode="decimal" step="0.5" min="1" max="10" /></label>
+      <button class="set-complete" aria-label="Complete set">✓</button>
+    </div>
+  </template>
+
+  <script src="./app.js"></script>
+</body>
+</html>
