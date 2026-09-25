@@ -1,4 +1,4 @@
-const APP_VERSION = '2.1.0';
+const APP_VERSION = '2.2.0';
 const STORAGE_KEY = 'strongman-peak-data-v1'; // Keep the old key so existing logs can migrate.
 const PLAN_STORAGE_KEY = 'operation-strongman-active-plan-v2';
 const BUNDLED_PLAN_URL = './default-plan-meta.json';
@@ -15,6 +15,30 @@ function fmtDate(iso){ if(!iso) return '—'; return new Date(`${iso}T12:00:00`)
 function deepClone(v){ return JSON.parse(JSON.stringify(v)); }
 function downloadJSON(obj, filename){ const blob=new Blob([JSON.stringify(obj,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),500); }
 
+
+function normalisePlanConstraints(plan){
+  const minLog=Number(plan?.constraints?.logMinKg||80);
+  if(!minLog) return plan;
+  for(const week of plan.weeks||[]){
+    for(const day of week.days||[]){
+      const logExercise=(day.exercises||[]).find(e=>e.name?.toLowerCase().includes('log') && (e.sets||[]).some(s=>Number(s.weight)>0));
+      const firstLogWeight=logExercise ? Number((logExercise.sets||[]).find(s=>Number(s.weight)>0)?.weight||0) : 0;
+      for(const item of day.warmup||[]){
+        if(!item.name?.toLowerCase().includes('log')) continue;
+        if(firstLogWeight && firstLogWeight<=minLog){
+          item.prescription=`${minLog} kg is the empty log; use the first 1–2 programmed singles as the specific warm-up after movement prep`;
+        } else if(firstLogWeight){
+          item.prescription=`${minLog} kg × 2–3 crisp reps/singles, then make sensible jumps to ${firstLogWeight} kg`;
+        } else {
+          item.prescription=`Start with the empty ${minLog} kg log; no loaded log work below this`;
+        }
+        item.note=`Empty log = ${minLog} kg. Use the mobility/activation drills before touching the implement.`;
+      }
+    }
+  }
+  return plan;
+}
+
 function validatePlan(plan){
   if(!plan || typeof plan !== 'object') throw new Error('Plan must be a JSON object.');
   if(!plan.id || !plan.name) throw new Error('Plan needs an id and name.');
@@ -24,10 +48,16 @@ function validatePlan(plan){
     for(const day of week.days){
       if(!day.id || !day.name || !Array.isArray(day.exercises)) throw new Error(`A day in ${week.label || week.id} is missing id/name/exercises.`);
       day.warmup ||= [];
-      for(const exercise of day.exercises){ if(!exercise.id || !exercise.name || !Array.isArray(exercise.sets)) throw new Error(`Exercise in ${day.name} is missing id/name/sets.`); }
+      for(const exercise of day.exercises){
+        if(!exercise.id || !exercise.name || !Array.isArray(exercise.sets)) throw new Error(`Exercise in ${day.name} is missing id/name/sets.`);
+        const minLog=Number(plan.constraints?.logMinKg||80);
+        if(minLog && exercise.name.toLowerCase().includes('log')){
+          for(const set of exercise.sets){ const w=Number(set.weight); if(w>0 && w<minLog) throw new Error(`${exercise.name} prescribes ${w} kg, below the ${minLog} kg empty-log minimum.`); }
+        }
+      }
     }
   }
-  return plan;
+  return normalisePlanConstraints(plan);
 }
 
 async function fetchBundledPlan(){
@@ -54,7 +84,7 @@ function planProfile(plan){
     logPB: Number(t.logPB)||0, logTarget:Number(t.logTarget)||0, deadliftPB:Number(t.deadliftPB)||0, deadliftTarget:Number(t.deadliftTarget)||0
   };
 }
-function defaultData(){ return { profile:planProfile(activePlan), sessions:{}, readiness:{}, notes:{}, installedHintDismissed:false }; }
+function defaultData(){ return { profile:planProfile(activePlan, sessions:{}, readiness:{}, notes:{}, installedHintDismissed:false }; }
 function loadData(){
   const base=defaultData();
   try {
@@ -64,7 +94,7 @@ function loadData(){
   } catch { return base; }
 }
 function saveData(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
-function syncProfileFromPlan(){ data.profile={...data.profile,...planProfile(activePlan)}; saveData(); }
+function syncProfileFromPlan(){ data.profile={...data.profile,...planProfile(activePlan))}; saveData(); }
 
 function getCurrentWeek(){
   const t=localISO();
