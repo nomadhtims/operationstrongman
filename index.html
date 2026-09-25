@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0d0f12" />
   <meta name="description" content="Importable strongman programming and training tracker." />
-  <link rel="manifest" href="./manifest.json" />
+  <link rel="manifest" href="./manifest.json?v=2.2.2" />
   <link rel="icon" href="./icons/icon.svg" />
   <link rel="apple-touch-icon" href="./icons/icon.svg" />
-  <link rel="stylesheet" href="./style.css" />
+  <link rel="stylesheet" href="./style.css?v=2.2.2" />
   <title>Operation Strongman</title>
 </head>
 <body>
@@ -33,8 +33,19 @@
       <button data-nav="settings" class="nav-btn"><span>⚙</span><small>Data</small></button>
     </nav>
   </div>
-  <script src="./app-core.js"></script>
-  <script src="./app-render.js"></script>
-  <script src="./app-events.js"></script>
+  <script>
+    window.__OS_BOOTED__ = false;
+    setTimeout(() => {
+      if (!window.__OS_BOOTED__) {
+        const main = document.getElementById('main');
+        if (main && main.textContent.includes('Loading programme')) {
+          main.innerHTML = '<div class="card"><h2>App did not start</h2><p class="muted">A stale cached build may still be active. Reload this page once; if needed, close and reopen the installed app.</p></div>';
+        }
+      }
+    }, 5000);
+  </script>
+  <script src="./app-core.js?v=2.2.2"></script>
+  <script src="./app-render.js?v=2.2.2"></script>
+  <script src="./app-events.js?v=2.2.2"></script>
 </body>
 </html>
