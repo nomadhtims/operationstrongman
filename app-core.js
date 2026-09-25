@@ -1,4 +1,4 @@
-const APP_VERSION = '2.0.0';
+const APP_VERSION = '2.1.0';
 const STORAGE_KEY = 'strongman-peak-data-v1'; // Keep the old key so existing logs can migrate.
 const PLAN_STORAGE_KEY = 'operation-strongman-active-plan-v2';
 const BUNDLED_PLAN_URL = './default-plan-meta.json';
@@ -37,8 +37,15 @@ async function fetchBundledPlan(){
   return validatePlan({...meta,weeks});
 }
 async function loadActivePlan(){
-  try { const saved=localStorage.getItem(PLAN_STORAGE_KEY); if(saved) return validatePlan(JSON.parse(saved)); } catch(e){ console.warn('Stored plan invalid',e); }
-  const bundled=await fetchBundledPlan(); localStorage.setItem(PLAN_STORAGE_KEY,JSON.stringify(bundled)); return bundled;
+  let saved=null;
+  try { const raw=localStorage.getItem(PLAN_STORAGE_KEY); if(raw) saved=validatePlan(JSON.parse(raw)); } catch(e){ console.warn('Stored plan invalid',e); }
+  const bundled=await fetchBundledPlan();
+  // Keep imported future blocks. If the active plan is this bundled block, automatically pick up
+  // programme revisions without touching the separate training-log store.
+  if(saved && saved.id!==bundled.id) return saved;
+  if(saved && Number(saved.revision||0)>=Number(bundled.revision||0)) return saved;
+  localStorage.setItem(PLAN_STORAGE_KEY,JSON.stringify(bundled));
+  return bundled;
 }
 function planProfile(plan){
   const t=plan?.competition?.targets || {};
