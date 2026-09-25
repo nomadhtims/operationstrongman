@@ -159,3 +159,26 @@ button { color: inherit; }
 .cardio-grid button { grid-column:1 / -1; }
 .link-btn { display:inline-flex; align-items:center; text-decoration:none; }
 @media (min-width:760px){ .cardio-grid { grid-template-columns:1fr 1fr auto; } .cardio-grid button { grid-column:auto; } }
+
+
+/* v2.1: fast set logging — RPE first, actual load/reps only when adjusted */
+.set-row { display:grid; grid-template-columns:minmax(0,1fr) 86px; gap:10px; align-items:end; padding:12px; border:1px solid var(--line); border-radius:14px; background:#101216; }
+.set-row.done { border-color:rgba(82,211,154,.42); background:rgba(82,211,154,.045); }
+.set-main { min-width:0; align-self:center; }
+.set-label { padding:0; font-size:12px; color:var(--muted); }
+.set-prescription { margin-top:4px; color:var(--accent-2); font-size:17px; font-weight:900; }
+.set-target { display:block; margin-top:3px; color:var(--muted); font-size:11px; }
+.set-rpe { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; }
+.set-rpe input { width:100%; min-width:0; margin-top:4px; height:42px; padding:8px; background:#0d0f12; color:var(--text); border:1px solid var(--line); border-radius:10px; font-size:16px; }
+.set-actions { grid-column:1 / -1; display:grid; grid-template-columns:minmax(110px,.7fr) minmax(0,1.3fr); gap:8px; }
+.plan-status, .set-complete { min-height:44px; height:auto; border-radius:11px; padding:9px 10px; font-weight:900; cursor:pointer; }
+.plan-status { border:1px solid rgba(82,211,154,.35); background:rgba(82,211,154,.08); color:var(--good); font-size:11px; }
+.plan-status.adjusted { border-color:rgba(255,180,84,.4); background:rgba(255,180,84,.09); color:var(--warn); }
+.set-complete { border:0; background:var(--accent); color:#121212; font-size:12px; }
+.set-complete.done { background:var(--good); color:#0c271b; }
+.set-adjustments { grid-column:1 / -1; display:grid; grid-template-columns:1fr 1fr; gap:8px; border-top:1px solid var(--line); padding-top:10px; }
+.set-adjustments.hidden { display:none !important; }
+.set-adjustments label { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; }
+.set-adjustments input { width:100%; margin-top:4px; height:42px; padding:8px; background:#0d0f12; color:var(--text); border:1px solid var(--line); border-radius:10px; font-size:16px; }
+.adjustment-help { grid-column:1 / -1; margin:0 !important; font-size:11px !important; color:var(--muted) !important; }
+@media (min-width:760px){ .set-row { grid-template-columns:minmax(0,1fr) 100px; } .set-actions { grid-template-columns:160px minmax(220px,1fr); justify-self:stretch; } }
