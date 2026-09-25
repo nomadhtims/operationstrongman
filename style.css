@@ -142,3 +142,20 @@ button { color: inherit; }
 @media (min-width: 1000px) {
   .program-days { grid-template-columns:repeat(4,1fr); }
 }
+
+/* v2: importable plans, warm-ups and cardio */
+.section-kicker { display:block; color:var(--accent); font-size:11px; font-weight:900; letter-spacing:.12em; margin-bottom:4px; }
+.warmup-card { margin-bottom:12px; border-color:rgba(113, 206, 255, .22); }
+.warmup-list { display:grid; gap:8px; margin-top:12px; }
+.warmup-item { width:100%; display:grid; grid-template-columns:36px 1fr; gap:10px; align-items:start; text-align:left; background:#101319; border:1px solid var(--line); border-radius:13px; padding:11px; cursor:pointer; }
+.warmup-item.done { border-color:rgba(82,211,154,.55); background:rgba(82,211,154,.08); }
+.warmup-check { width:30px; height:30px; border-radius:10px; display:grid; place-items:center; background:var(--panel-2); font-weight:900; color:var(--muted); }
+.warmup-item.done .warmup-check { background:var(--good); color:#0c271b; }
+.warmup-item strong { display:block; }
+.warmup-item small { display:block; color:var(--accent-2); margin-top:3px; font-weight:800; }
+.warmup-item em { display:block; color:var(--muted); margin-top:4px; font-size:12px; font-style:normal; }
+.cardio-card { margin-top:12px; border-color:rgba(82,211,154,.25); }
+.cardio-grid { display:grid; grid-template-columns:1fr 1fr; gap:9px; align-items:end; margin-top:12px; }
+.cardio-grid button { grid-column:1 / -1; }
+.link-btn { display:inline-flex; align-items:center; text-decoration:none; }
+@media (min-width:760px){ .cardio-grid { grid-template-columns:1fr 1fr auto; } .cardio-grid button { grid-column:auto; } }

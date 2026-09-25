@@ -1,52 +1,41 @@
-# Strongman Peak PWA
+# Operation Strongman PWA v2
 
-A lightweight, offline-capable progressive web app built around the 31 October 2026 Log + Deadlift competition peak.
+A local-first, installable strongman training app designed so the **app and the programme are separate**.
 
-## Included
-- Handover week using the current coach's key log/deadlift prescriptions.
-- Four progressive training weeks plus competition-week taper.
-- Log target: 115 kg current PB → 120 kg goal.
-- Deadlift target: 260 kg current PB → 280 kg goal.
-- 4-day layout: Log/Upper, Deadlift/Back, Legs, Log+Deadlift Support.
-- Set-by-set weight, reps and RPE logging.
-- Readiness tracking.
-- Competition countdown and training-best display.
-- Offline caching after first load.
-- Local browser storage plus JSON export/import.
-- Responsive layout designed for a phone cover screen and a Fold-style larger inner display.
+## What changed in v2
 
-## GitHub Pages deployment
+- Warm-up / mobility checklists inside every training session.
+- Cardio prescription and logging.
+- The bundled competition plan is stored as plan data rather than hard-coded app logic.
+- New programmes can be imported from the **Data** screen without changing app code or redeploying GitHub Pages.
+- Training data is stored separately from the active programme.
+- Importing a new plan does **not** erase existing logs.
+- Full backup exports the plan + all local training data.
+- `plan-template.json` is a starting point for future blocks.
 
-This repository includes `.github/workflows/pages.yml`, which deploys the site automatically whenever `main` is updated.
+## GitHub Pages
 
-After creating the repository and pushing these files:
+GitHub Pages remains configured as:
 
-1. Open the repository on GitHub.
-2. Go to **Settings → Pages**.
-3. Under **Build and deployment → Source**, select **GitHub Actions**.
-4. Open the **Actions** tab and confirm the `Deploy Strongman Peak to GitHub Pages` workflow succeeds.
-5. The deployment page will show the live GitHub Pages URL.
+- Branch: `main`
+- Folder: `/(root)`
 
-All asset, manifest, and service-worker paths are relative, so the PWA works when hosted at a project URL such as `https://USERNAME.github.io/strongman-peak/`.
+After an app update, refresh/reopen the installed PWA once so the new service worker activates.
 
-## Install on Android / Samsung Fold
+## Future workflow
 
-Open the live HTTPS site in Chrome. Use **Install app** or **Add to Home screen**. Once loaded successfully, the service worker caches the app for offline use.
+1. Create a new programme JSON following `plan-template.json`.
+2. On the app, open **Data**.
+3. Tap **Import Plan JSON**.
+4. The new programme becomes active instantly.
+5. Existing workout history remains stored on the device.
 
-## Training data and privacy
+No GitHub rebuild is needed for routine programme changes.
 
-Workout logs are stored in the browser's local storage. Publishing this repository does **not** publish entered weights, RPEs, readiness scores, or notes. Use **Data → Export JSON** inside the app for backups. Clearing browser/site data can remove local logs.
+## Data model
 
-## Run locally
+The plan controls block/week dates, day names, warm-ups, strength exercises, cardio and competition targets. The browser separately stores actual kg/reps/RPE, warm-up completion, cardio, readiness, session notes and history.
 
-Because service workers require HTTP/HTTPS, run a local web server rather than double-clicking `index.html`:
+## Important
 
-```bash
-python -m http.server 8080
-```
-
-Then open `http://localhost:8080`.
-
-## Programming note
-
-The optional 117.5 kg log and 270 kg deadlift singles are conditional on the preceding heavy single staying within its programmed RPE cap. The app intentionally does not schedule 120 kg log or 280 kg deadlift in training before competition day.
+Browser data is local to the device/browser. Use **Export Full Backup** periodically and before clearing browser data or changing phones.

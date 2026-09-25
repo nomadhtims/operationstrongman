@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="104" fill="#0d0f12"/>
+  <circle cx="256" cy="256" r="178" fill="none" stroke="#f2b84b" stroke-width="24"/>
+  <path d="M126 236h52v40h-52zm208 0h52v40h-52zM178 246h156v20H178z" fill="#f2b84b"/>
+  <path d="M94 214h28v84H94zm296 0h28v84h-28z" fill="#f2b84b"/>
+  <text x="256" y="362" text-anchor="middle" font-family="system-ui,Arial,sans-serif" font-size="78" font-weight="800" fill="#fff">OS</text>
+</svg>

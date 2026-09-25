@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 2,
+  "id": "my-next-block-2026-11",
+  "name": "My Next Strongman Block",
+  "subtitle": "Example importable programme",
+  "competition": {
+    "date": "2026-12-12",
+    "name": "Example Competition",
+    "targets": {
+      "logPB": 120,
+      "logTarget": 125,
+      "deadliftPB": 280,
+      "deadliftTarget": 290
+    }
+  },
+  "notes": "Optional block-level note shown inside workouts.",
+  "weeks": [
+    {
+      "id": "w1",
+      "label": "Week 1",
+      "short": "2–8 Nov",
+      "phase": "Build",
+      "start": "2026-11-02",
+      "end": "2026-11-08",
+      "days": [
+        {
+          "id": "upper",
+          "name": "Upper / Overhead",
+          "short": "Upper",
+          "note": "Main session objective.",
+          "warmup": [
+            {"id":"pulse","name":"Bike","prescription":"5 min easy","note":"Warm, not tired."},
+            {"id":"lat","name":"Banded lat stretch","prescription":"2 × 20 sec / side","note":"Gentle hold."}
+          ],
+          "exercises": [
+            {
+              "id": "log-main",
+              "name": "Competition Log",
+              "plan": "100 kg · 3×3",
+              "priority": true,
+              "note": "Keep all reps clean.",
+              "sets": [
+                {"weight":100,"reps":3,"targetRpe":"7","label":"Set 1","optional":false},
+                {"weight":100,"reps":3,"targetRpe":"7","label":"Set 2","optional":false},
+                {"weight":100,"reps":3,"targetRpe":"7","label":"Set 3","optional":false}
+              ]
+            }
+          ],
+          "cardio": {"id":"cardio","name":"Zone 2 bike","target":"20 min · RPE 3–4","note":"Conversational pace.","required":true}
+        }
+      ]
+    }
+  ]
+}
