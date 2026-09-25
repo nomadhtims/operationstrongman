@@ -1,4 +1,4 @@
-const APP_VERSION = '2.2.0';
+const APP_VERSION = '2.2.1';
 const STORAGE_KEY = 'strongman-peak-data-v1'; // Keep the old key so existing logs can migrate.
 const PLAN_STORAGE_KEY = 'operation-strongman-active-plan-v2';
 const BUNDLED_PLAN_URL = './default-plan-meta.json';
@@ -14,7 +14,6 @@ function localISO(d = new Date()) { const y=d.getFullYear(), m=String(d.getMonth
 function fmtDate(iso){ if(!iso) return '—'; return new Date(`${iso}T12:00:00`).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}); }
 function deepClone(v){ return JSON.parse(JSON.stringify(v)); }
 function downloadJSON(obj, filename){ const blob=new Blob([JSON.stringify(obj,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),500); }
-
 
 function normalisePlanConstraints(plan){
   const minLog=Number(plan?.constraints?.logMinKg||80);
@@ -52,7 +51,10 @@ function validatePlan(plan){
         if(!exercise.id || !exercise.name || !Array.isArray(exercise.sets)) throw new Error(`Exercise in ${day.name} is missing id/name/sets.`);
         const minLog=Number(plan.constraints?.logMinKg||80);
         if(minLog && exercise.name.toLowerCase().includes('log')){
-          for(const set of exercise.sets){ const w=Number(set.weight); if(w>0 && w<minLog) throw new Error(`${exercise.name} prescribes ${w} kg, below the ${minLog} kg empty-log minimum.`); }
+          for(const set of exercise.sets){
+            const w=Number(set.weight);
+            if(w>0 && w<minLog) throw new Error(`${exercise.name} prescribes ${w} kg, below the ${minLog} kg empty-log minimum.`);
+          }
         }
       }
     }
@@ -61,14 +63,25 @@ function validatePlan(plan){
 }
 
 async function fetchBundledPlan(){
-  const r=await fetch(BUNDLED_PLAN_URL,{cache:'no-store'}); if(!r.ok) throw new Error('Could not load bundled plan.');
-  const meta=await r.json(); const files=meta.weekFiles||[]; delete meta.weekFiles;
-  const weeks=await Promise.all(files.map(async file=>{const wr=await fetch(file,{cache:'no-store'});if(!wr.ok)throw new Error(`Could not load ${file}.`);return wr.json();}));
+  const r=await fetch(BUNDLED_PLAN_URL,{cache:'no-store'});
+  if(!r.ok) throw new Error('Could not load bundled plan.');
+  const meta=await r.json();
+  const files=meta.weekFiles||[];
+  delete meta.weekFiles;
+  const weeks=await Promise.all(files.map(async file=>{
+    const wr=await fetch(file,{cache:'no-store'});
+    if(!wr.ok) throw new Error(`Could not load ${file}.`);
+    return wr.json();
+  }));
   return validatePlan({...meta,weeks});
 }
+
 async function loadActivePlan(){
   let saved=null;
-  try { const raw=localStorage.getItem(PLAN_STORAGE_KEY); if(raw) saved=validatePlan(JSON.parse(raw)); } catch(e){ console.warn('Stored plan invalid',e); }
+  try {
+    const raw=localStorage.getItem(PLAN_STORAGE_KEY);
+    if(raw) saved=validatePlan(JSON.parse(raw));
+  } catch(e){ console.warn('Stored plan invalid',e); }
   const bundled=await fetchBundledPlan();
   // Keep imported future blocks. If the active plan is this bundled block, automatically pick up
   // programme revisions without touching the separate training-log store.
@@ -77,24 +90,47 @@ async function loadActivePlan(){
   localStorage.setItem(PLAN_STORAGE_KEY,JSON.stringify(bundled));
   return bundled;
 }
+
 function planProfile(plan){
   const t=plan?.competition?.targets || {};
   return {
-    competitionDate: plan?.competition?.date || '', competitionName: plan?.competition?.name || plan?.name || 'Training block',
-    logPB: Number(t.logPB)||0, logTarget:Number(t.logTarget)||0, deadliftPB:Number(t.deadliftPB)||0, deadliftTarget:Number(t.deadliftTarget)||0
+    competitionDate: plan?.competition?.date || '',
+    competitionName: plan?.competition?.name || plan?.name || 'Training block',
+    logPB: Number(t.logPB)||0,
+    logTarget:Number(t.logTarget)||0,
+    deadliftPB:Number(t.deadliftPB)||0,
+    deadliftTarget:Number(t.deadliftTarget)||0
   };
 }
-function defaultData(){ return { profile:planProfile(activePlan, sessions:{}, readiness:{}, notes:{}, installedHintDismissed:false }; }
+
+function defaultData(){
+  return {
+    profile:planProfile(activePlan),
+    sessions:{},
+    readiness:{},
+    notes:{},
+    installedHintDismissed:false
+  };
+}
+
 function loadData(){
   const base=defaultData();
   try {
     const saved=JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
     if(!saved) return base;
-    return { ...base, ...saved, profile:{...base.profile,...(saved.profile||{})}, sessions:saved.sessions||{}, readiness:saved.readiness||{}, notes:saved.notes||{} };
+    return {
+      ...base,
+      ...saved,
+      profile:{...base.profile,...(saved.profile||{})},
+      sessions:saved.sessions||{},
+      readiness:saved.readiness||{},
+      notes:saved.notes||{}
+    };
   } catch { return base; }
 }
+
 function saveData(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
-function syncProfileFromPlan(){ data.profile={...data.profile,...planProfile(activePlan))}; saveData(); }
+function syncProfileFromPlan(){ data.profile={...data.profile,...planProfile(activePlan)}; saveData(); }
 
 function getCurrentWeek(){
   const t=localISO();
@@ -108,11 +144,14 @@ function sessionFor(weekId,dayId){
   if(!data.sessions[key]){
     const legacy=data.sessions[legacyKeyFor(weekId,dayId)];
     data.sessions[key]=legacy ? deepClone(legacy) : {startedAt:null,completedAt:null,exercises:{},warmup:{},cardio:{},sessionNote:''};
-    data.sessions[key].warmup ||= {}; data.sessions[key].cardio ||= {}; data.sessions[key].exercises ||= {};
+    data.sessions[key].warmup ||= {};
+    data.sessions[key].cardio ||= {};
+    data.sessions[key].exercises ||= {};
     saveData();
   }
   return data.sessions[key];
 }
+
 function requiredProgressItems(day){
   const warm=(day.warmup||[]).map(x=>({type:'warmup',id:x.id}));
   const sets=(day.exercises||[]).flatMap(e=>e.sets.map((set,i)=>({type:'set',exercise:e.id,index:i,optional:Boolean(set.optional)}))).filter(x=>!x.optional);
@@ -120,22 +159,31 @@ function requiredProgressItems(day){
   return [...warm,...sets,...cardio];
 }
 function sessionProgress(week,day){
-  const s=sessionFor(week.id,day.id); const items=requiredProgressItems(day);
+  const s=sessionFor(week.id,day.id);
+  const items=requiredProgressItems(day);
   if(!items.length) return s.completedAt?100:0;
   const done=items.filter(x=>x.type==='warmup'?s.warmup?.[x.id]:x.type==='cardio'?s.cardio?.done:s.exercises?.[x.exercise]?.[x.index]?.done).length;
   return Math.round(done/items.length*100);
 }
-function daysToComp(){ if(!data.profile.competitionDate) return null; const today=new Date(`${localISO()}T00:00:00`), comp=new Date(`${data.profile.competitionDate}T00:00:00`); return Math.max(0,Math.ceil((comp-today)/86400000)); }
+function daysToComp(){
+  if(!data.profile.competitionDate) return null;
+  const today=new Date(`${localISO()}T00:00:00`), comp=new Date(`${data.profile.competitionDate}T00:00:00`);
+  return Math.max(0,Math.ceil((comp-today)/86400000));
+}
 function trainingBest(type){
   let best=0;
   for(const w of PROGRAM) for(const d of w.days) for(const e of d.exercises||[]){
-    const n=e.name.toLowerCase(); const relevant=type==='log'?(n.includes('log') && !n.includes('strict')):n.includes('deadlift'); if(!relevant) continue;
-    const rows=sessionFor(w.id,d.id).exercises?.[e.id]||[]; rows.forEach(r=>{if(r.done&&Number(r.weight)>best)best=Number(r.weight);});
+    const n=e.name.toLowerCase();
+    const relevant=type==='log'?(n.includes('log') && !n.includes('strict')):n.includes('deadlift');
+    if(!relevant) continue;
+    const rows=sessionFor(w.id,d.id).exercises?.[e.id]||[];
+    rows.forEach(r=>{if(r.done&&Number(r.weight)>best)best=Number(r.weight);});
   }
   return best||'—';
 }
 function nextSession(){
-  const current=getCurrentWeek(); const start=Math.max(0,PROGRAM.findIndex(w=>w.id===current.id));
+  const current=getCurrentWeek();
+  const start=Math.max(0,PROGRAM.findIndex(w=>w.id===current.id));
   for(let wi=start;wi<PROGRAM.length;wi++) for(const d of PROGRAM[wi].days) if(!sessionFor(PROGRAM[wi].id,d.id).completedAt) return {week:PROGRAM[wi],day:d};
   return {week:PROGRAM.at(-1),day:PROGRAM.at(-1).days.at(-1)};
 }
